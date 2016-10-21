@@ -72,6 +72,8 @@ echo -en "\tCopying application prebuilt directory..."
 
 cd ../..
 mv src/mobility_server/mobility_server prebuilt/bin/x86/
+cp prebuilt/bin/x86/mobility_server /opt/online_backends/code_mobility/
+
 echo -e " done\n"
 
 echo -e "${CGREEN}Code Mobility Components build process COMPLETED.\n${CDEFAULT}"
