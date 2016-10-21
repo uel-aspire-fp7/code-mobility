@@ -1,0 +1,9 @@
+CC=/opt/diablo-android-gcc-toolchain/bin/arm-linux-androideabi-gcc
+OPTIONS=-O3 -fPIC -marm -mfloat-abi=softfp -msoft-float -mfpu=neon -std=gnu99 -Wall -Werror
+
+default:
+	$(CC) $(OPTIONS) -o binder.o -c binder.c
+	$(CC) $(OPTIONS) -o stub_downloader.o -c downloader.c
+
+clean:
+	rm -f binder.o stub_downloader.o

@@ -1,0 +1,9 @@
+This directory contains the downloader that obtains code blocks via the ACCL.
+
+To generate the Makefile for the binder object that will be linked in, run the 
+generate.sh script. This script takes two arguments: the path to the compiler 
+in the patched toolchain the target platform: android (ARM), linux (ARM).
+
+Example: ./generate.sh /opt/diablo-gcc-toolchain/bin/arm-diablo-linux-gnueabi-gcc linux
+
+Two pre-generated Makefiles for ARM Linux and Android targets are provided.

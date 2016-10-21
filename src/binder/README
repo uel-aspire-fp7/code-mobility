@@ -1,0 +1,12 @@
+This directory contains the binder and a stub downloader that simply mmaps the 
+mobile blocks from the disk (it is only present for testing purposes).
+
+To generate the Makefile for the binder object that will be linked in, run the 
+generate.sh script. This script takes three arguments: the path to the compiler 
+in the patched toolchain, the name for the binder object and the name for the 
+downloader object.
+
+Example: 
+./generate.sh ~/diablo/toolchain-gcc-4.8.1-arm/bin/arm-diablo-linux-gnueabi-cc binder.o downloader.o
+
+Two pre-generated Makefiles for ARM Linux and Android targets are provided.

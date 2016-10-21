@@ -1,0 +1,9 @@
+This directory contains the code mobility server.
+
+A Makefile to build the application is provided. Use it as follows:
+
+    make -f Makefile.linux_x86
+
+Possible targets are:
+* clean: cleans previous build processes out
+* with_ra: builds a code Code Mobility Server with Remote Attestation support

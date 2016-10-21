@@ -1,0 +1,10 @@
+CC=TOOLCHAIN_PLACEHOLDER
+CFLAGS=-O3 -fPIC -marm -mfloat-abi=softfp -msoft-float -mfpu=neon -std=gnu99 -Wall -Werror
+
+all: downloader
+	
+downloader:
+	$(CC) $(CFLAGS) -c downloader.c -o downloader.o
+
+clean:
+	rm -f *.o
