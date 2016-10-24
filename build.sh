@@ -78,4 +78,5 @@ echo -e " done\n"
 
 echo -e "${CGREEN}Code Mobility Components build process COMPLETED.\n${CDEFAULT}"
 
-[ $(which tree) != '' ] && 	tree -h prebuilt
+TREE_OK=$(which tree)
+[ "${TREE_OK}" != '' ] && tree -h prebuilt
