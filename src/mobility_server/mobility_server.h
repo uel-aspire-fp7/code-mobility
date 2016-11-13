@@ -73,4 +73,3 @@ int readActualRevision(const char* application_id, char* revision);
 #define MOBILITY_SERVER_REPOSITORY_PATH "/opt/online_backends/%s/code_mobility/%s/mobile_dump_%08x"
 
 #endif
-
