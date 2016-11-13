@@ -16,14 +16,23 @@
 		index and returned on the STDOUT.
 */
 int main(int argc, char** argv){
-	char *in_buf, out_buf[MOBILITY_SERVER_MAX_BLOCK_SIZE], file_block[255], application_id[ASPIRE_APPLICATION_ID_MAX_LENGTH];
-	char *actual_revision = "00000000";
+	char *in_buf, 	/* buffer for incoming data */
+		out_buf[MOBILITY_SERVER_MAX_BLOCK_SIZE],  /* buffer for mobile block */
+		file_block[255], /* name of file containing requested mobile block */
+		application_id[ASPIRE_APPLICATION_ID_MAX_LENGTH]; /* application id */
+
+	char actual_revision[255] = "00000000\0"; /* actual revision */
 	int read_bytes = 0, ret_n, application_id_len;
 	unsigned int block_index, in_buf_len;
 
+	mobilityServerLog("Code Mobility Server",
+					  "Start.\n",
+					  MS_INFO);
+
 	/* parameters check */
 	if (argc < 4) {
-		mobilityServerLog("Code Mobility Server", "Invalid arguments number: %d (%d expected).\n", 
+		mobilityServerLog("Code Mobility Server", 
+			"Invalid arguments number: %d (%d expected).\n", 
 			MS_ERROR, argc, 3);
 
 		return 1;
@@ -32,15 +41,22 @@ int main(int argc, char** argv){
 	/* check whether the specified application should be served or not */
 	application_id_len = strlen(argv[3]);
 
-	if (application_id_len > 0 && application_id_len <= ASPIRE_APPLICATION_ID_MAX_LENGTH) {
-		
-		#if MOBILITY_SERVER_CHECK_COMPROMISED_APPLICATION
+	if (application_id_len > 0 && 
+		application_id_len <= ASPIRE_APPLICATION_ID_MAX_LENGTH) {
 
 		strcpy(application_id, argv[3]);
 
+		mobilityServerLog("Code Mobility Server",
+						  "Application ID: %s .\n",
+						  MS_INFO,
+						  application_id);
+		
+		#if MOBILITY_SERVER_CHECK_COMPROMISED_APPLICATION
+
 		if (MOBILITY_SERVER_KO == checkApplication(application_id)) {
-			mobilityServerLog("Code Mobility Server", "Application ID '%s' didn't pass the RA safety check.\n",
-							  MS_ERROR, application_id);
+			mobilityServerLog("Code Mobility Server", 
+				"Application ID '%s' didn't pass the RA safety check.\n",
+			 	MS_ERROR, application_id);
 
 			return 1;
 		}
@@ -53,6 +69,17 @@ int main(int argc, char** argv){
 
 		return 1;
 	}
+
+#if MOBILITY_SERVER_USE_RENEWABILITY
+	/* read the revision that should be served from renewability database */
+	if (MOBILITY_SERVER_KO == readActualRevision(application_id, actual_revision)) {
+		mobilityServerLog("Code Mobility Server",
+						  "Can't read actual revision for Application ID '%s'.\n",
+						  MS_ERROR, application_id);
+
+		return 1;
+	}
+#endif
 
 	/* read payload length from command arguments */
 	in_buf_len = atoi(argv[2]);
@@ -75,8 +102,8 @@ int main(int argc, char** argv){
 		
 		/* cannot read from input buffer */
 		if (n == -1) {
-			mobilityServerLog("Code Mobility Server", "Error while reading from input buffer.\n", 
-				MS_ERROR);
+			mobilityServerLog("Code Mobility Server", 
+				"Error while reading from input buffer.\n", MS_ERROR);
 
 			free (in_buf);
 			return 1;
@@ -86,8 +113,8 @@ int main(int argc, char** argv){
 		
 		/* passed buffer is smaller than passed size */
 		if (n == 0 && read_bytes < in_buf_len) {
-			mobilityServerLog("Code Mobility Server", "Not enought data in input buffer.\n", 
-				MS_ERROR);
+			mobilityServerLog("Code Mobility Server", 
+				"Not enought data in input buffer.\n", MS_ERROR);
 
 			free (in_buf);
 			return 1;
@@ -97,13 +124,19 @@ int main(int argc, char** argv){
 	/* block_index -> block requested by the client */
 	memcpy(&block_index, in_buf, sizeof(unsigned int));
 
+	mobilityServerLog("Code Mobility Server", 
+		"Actual revision for app_id %s is %s\n", 
+		MS_INFO, application_id, actual_revision);
+
 	mobilityServerLog("Code Mobility Server", "BLOCK_ID %d requested\n", 
 		MS_INFO, block_index);
 
 	/* compose block file name */
-	sprintf(file_block, MOBILITY_SERVER_REPOSITORY_PATH, application_id, actual_revision, block_index);
+	sprintf(file_block, MOBILITY_SERVER_REPOSITORY_PATH, 
+		application_id, actual_revision, block_index);
 
-	mobilityServerLog("Code Mobility Server", "BLOCK_ID %x (filename: %s) is going to be served.\n",
+	mobilityServerLog("Code Mobility Server", 
+		"BLOCK_ID %x (filename: %s) is going to be served.\n",
 		MS_INFO, block_index, file_block);
 
 	/* read actual data to the buffer */
@@ -111,7 +144,8 @@ int main(int argc, char** argv){
 
 	/* check for error */
 	if (ret_n != MOBILITY_SERVER_ERROR) {
-		mobilityServerLog("Code Mobility Server", "BLOCK_ID %d is %d bytes long.\n", 
+		mobilityServerLog("Code Mobility Server", 
+			"BLOCK_ID %d is %d bytes long.\n", 
 			MS_INFO, block_index, ret_n);
 
 		write(STDOUT_FILENO, out_buf, ret_n);
@@ -119,12 +153,14 @@ int main(int argc, char** argv){
 		/* release memory */
 		free(in_buf);
 
-		mobilityServerLog("Code Mobility Server", "BLOCK_ID %d correctly sent to ASPIRE Portal.\n", 
+		mobilityServerLog("Code Mobility Server", 
+			"BLOCK_ID %d correctly sent to ASPIRE Portal.\n", 
 			MS_INFO, block_index);
 		
 		return 0;
 	} else {
-		mobilityServerLog("Code Mobility Server", "BLOCK_ID %d is not valid or exceeds maximum block size (%d bytes).\n", 
+		mobilityServerLog("Code Mobility Server", 
+			"BLOCK_ID %d is not valid or exceeds max block size (%d bytes).\n", 
 			MS_ERROR, block_index, MOBILITY_SERVER_MAX_BLOCK_SIZE);
 
 		/* release memory */
@@ -254,6 +290,126 @@ int checkApplication(const char* application_id) {
 	return ret;
 }
 
+#endif
+
+#if MOBILITY_SERVER_USE_RENEWABILITY
+
+int terminateWithMysqlErrorRN(MYSQL *con) {
+	mobilityServerLog("Code Mobility Server", mysql_error(con), MS_ERROR);
+
+	if (NULL != con)
+		mysql_close(con);
+
+	return MOBILITY_SERVER_KO;
+}
+
+/*******************************************************************************
+* NAME :            readActualRevision
+*
+* DESCRIPTION :     Reads current blocks revision from renewability database
+*
+* INPUTS :
+*       PARAMETERS:
+*           const char*		Aspire Application Id
+*       GLOBALS :
+*           None
+* OUTPUTS :
+*       PARAMETERS:
+*          char*			Revision
+*       GLOBALS :
+*           None
+*       RETURN :
+*            Type:   int                    Error code:
+*            Values: MOBILITY_SERVER_OK Revision is valid
+*            		 MOBILITY_SERVER_KO	An error occured while connecting to
+ *            		 					renewability database
+*
+* PROCESS :
+*       [1]  read data from a file
+*/
+int readActualRevision(const char* application_id, char* revision) {
+	char query[1024];
+	MYSQL *con = mysql_init(NULL);
+	MYSQL_RES *result;
+	MYSQL_ROW row;
+
+	if (NULL == con)
+		return terminateWithMysqlErrorRN (con);
+
+	if (mysql_real_connect(con,
+						   MOBILITY_SERVER_RENEWABILITY_MYSQL_HOST,
+						   MOBILITY_SERVER_RENEWABILITY_MYSQL_USER,
+						   MOBILITY_SERVER_RENEWABILITY_MYSQL_PASSWORD,
+						   NULL, 0, NULL, 0) == NULL)
+		return terminateWithMysqlErrorRN (con);
+
+	// database selection
+	sprintf(query, "USE %s", MOBILITY_SERVER_RENEWABILITY_MYSQL_DB);
+
+	if (mysql_query(con, query))
+		return terminateWithMysqlErrorRN (con);
+
+	// application verification query
+	sprintf(query, "SELECT number FROM rn_revision WHERE application_id = '%s' AND now() BETWEEN apply_from AND apply_to;", application_id);
+
+	mobilityServerLog("Code Mobility Server",
+					  "Revision Query: %s .\n",
+					  MS_INFO,
+					  query);
+
+	if (mysql_query(con, query))
+		return terminateWithMysqlErrorRN(con);
+
+	mobilityServerLog("Code Mobility Server",
+					  "Query OK.\n",
+					  MS_INFO);
+
+	if ((result = mysql_store_result(con)) == NULL)
+		return terminateWithMysqlErrorRN(con);
+
+	mobilityServerLog("Code Mobility Server",
+					  "Store OK.\n",
+					  MS_INFO);
+
+	// if no result set return OK and continue
+	if (mysql_num_rows(result) == 0) {
+		mobilityServerLog("Code Mobility Server", "No revision found on DB, proceed with default one", MS_INFO);
+
+		if (NULL != con)
+			mysql_close(con);
+
+		return MOBILITY_SERVER_OK;
+	}
+
+	row = mysql_fetch_row(result);
+
+	mobilityServerLog("Code Mobility Server",
+					  "Fetch OK.\n",
+					  MS_INFO);
+
+	if (NULL != row) {
+		mobilityServerLog("Code Mobility Server",
+						  "Fetch %s %s.\n",
+						  MS_INFO,revision, row[0]);
+
+		strcpy(revision, row[0]);
+
+		mobilityServerLog("Code Mobility Server", "Revision found on DB: %s", MS_INFO, revision);
+	}
+
+	mobilityServerLog("Code Mobility Server",
+					  "Revision Found: %s .\n",
+					  MS_INFO,
+					  revision);
+
+	mysql_free_result(result);
+
+	result = NULL;
+
+	mysql_close(con);
+
+	return MOBILITY_SERVER_OK;
+}
 #endif
 
 /*******************************************************************************

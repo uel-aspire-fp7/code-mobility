@@ -32,6 +32,8 @@ __attribute__ ((naked)) void DIABLO_Mobility_Init ()
  */
 static void InsertMobileBlock (MobileEntry* entry, uint32_t index, bool code)
 {
+//  printf("InsertMobileBlock(%d, %d)\n", index, code);
+
   /* Download the mobile block */
   size_t len;
   t_address start = DIABLO_Mobility_DownloadByIndex(index, &len);
@@ -51,7 +53,7 @@ static void InsertMobileBlock (MobileEntry* entry, uint32_t index, bool code)
     __clear_cache(start, start + len);
 #endif
 
-    //printf("Binder: block of code at %p\n", (t_address)((uint32_t)start + 8));
+//    //printf("Binder: block of code at %p\n", (t_address)((uint32_t)start + 8));
 
     /* Put the address of the stub into the downloaded field. We can use this later on to replace the address field with the address of the stub again */
     entry->downloaded = entry->addr;
@@ -70,6 +72,8 @@ static void InsertMobileBlock (MobileEntry* entry, uint32_t index, bool code)
 /* This function will return a MobileEntry for a mobile block (that will be downloaded if it's not present yet */
 static MobileEntry* GetMobileBlock(uint32_t index, bool code)
 {
+//  printf("GetMobileBlock(%d, %d)\n", index, code);
+
   MobileEntry* entry = &DIABLO_Mobility_global_mobile_redirection_table[index];
   pthread_mutex_lock(&(entry->mutex));
 
@@ -86,6 +90,7 @@ static MobileEntry* GetMobileBlock(uint32_t index, bool code)
 
 t_address DIABLO_Mobility_Resolve (uint32_t index)
 {
+//  printf("DIABLO_Mobility_Resolve(%d)\n", index);
   MobileEntry* entry = GetMobileBlock(index, true);
   return entry->addr;
 }
@@ -110,40 +115,42 @@ void EraseAllMobileBlocks()
 
 void EraseMobileBlock (uint32_t index, bool code)
 {
-  //printf("EraseMobileBlock(%x, %d)\n", index, code);
+//  printf("EraseMobileBlock(%x, %d)\n", index, code);
 
   MobileEntry* entry = &DIABLO_Mobility_global_mobile_redirection_table[index];
-  //pthread_mutex_lock(&(entry->mutex));
+  pthread_mutex_lock(&(entry->mutex));
 
   if (code)
   {
-    //printf("entry->addr: %x\n", (unsigned int)entry->addr);
-    //printf("entry->downloaded: %x\n", (unsigned int)entry->downloaded);
-    //printf("entry->len: %d\n", entry->len);
+//    printf("entry->addr: %x\n", (unsigned int)entry->addr);
+//    printf("entry->downloaded: %x\n", (unsigned int)entry->downloaded);
+//    printf("entry->len: %d\n", entry->len);
 
     if (entry->downloaded != 0) {
+//      printf("downloaded != 0 branch\n");
       /* release the previously allocated block */
-      free(entry->addr);
-
-      /* reset the 'block downloaded' flag so that next access to the
-       * block will trigger a new download process */
-      entry->downloaded = 0;
+      //free(entry->addr);
 
       /* reset the len attribute */
       entry->len = 0;
 
       /* restore the initial stub */
       entry->addr = entry->downloaded;
+
+      /* reset the 'block downloaded' flag so that next access to the
+       * block will trigger a new download process */
+      entry->downloaded = 0;
     }
   }
   else
   {
-    free(entry->addr);
+//    printf("downloaded == 0 branch\n");
+    //free(entry->addr);
 
     entry->downloaded = 0;
     entry->len = 0;
     entry->addr = 0;
   }
 
-  //pthread_mutex_unlock(&(entry->mutex));
+  pthread_mutex_unlock(&(entry->mutex));
 }

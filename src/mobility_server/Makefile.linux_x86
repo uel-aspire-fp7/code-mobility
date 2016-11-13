@@ -1,13 +1,16 @@
 CC=gcc
-CFLAGS=-I. -Wall -Werror -O3
+CFLAGS=-I. -Wall -Werror -O3 -g
 
 all: mobility_server
 
 mobility_server:
-	$(CC) $(CFLAGS) -DMOBILITY_SERVER_CHECK_COMPROMISED_APPLICATION=0 mobility_server.c -o mobility_server
+	$(CC) $(CFLAGS) -DMOBILITY_SERVER_CHECK_COMPROMISED_APPLICATION=0 -lmysqlclient mobility_server.c -o mobility_server
 
 with_ra:
 	$(CC) $(CFLAGS) mobility_server.c -o mobility_server -lmysqlclient
+
+install:
+	cp mobility_server /opt/online_backends/code_mobility/
 
 clean:
 	rm -f mobility_server *.o mobile_dump_*
