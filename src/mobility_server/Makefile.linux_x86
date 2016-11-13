@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I. -Wall -Werror -O3 -g
+CFLAGS=-I. -Wall -O3
 
 all: mobility_server
 
