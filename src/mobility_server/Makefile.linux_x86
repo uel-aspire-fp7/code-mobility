@@ -4,7 +4,7 @@ CFLAGS=-I. -Wall -O3
 all: mobility_server
 
 mobility_server:
-	$(CC) $(CFLAGS) -DMOBILITY_SERVER_CHECK_COMPROMISED_APPLICATION=0 -lmysqlclient mobility_server.c -o mobility_server
+	$(CC) $(CFLAGS) -DMOBILITY_SERVER_CHECK_COMPROMISED_APPLICATION=0 mobility_server.c -lmysqlclient -o mobility_server
 
 with_ra:
 	$(CC) $(CFLAGS) mobility_server.c -o mobility_server -lmysqlclient
