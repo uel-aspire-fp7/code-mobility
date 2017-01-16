@@ -41,7 +41,7 @@ rm -rf ${TARGET_PATH}/*
 count=0
 for f in $( ls $MOBILE_BLOCKS_PATH )
 do
-    target=${TARGET_PATH}/$( printf "%08d" ${count} )
+    target=${TARGET_PATH}/$( printf "%08x" ${count} )
     cp -r ${MOBILE_BLOCKS_PATH}/${f} ${target}
     echo $f > ${target}/source.txt
     count=$((count+1))
