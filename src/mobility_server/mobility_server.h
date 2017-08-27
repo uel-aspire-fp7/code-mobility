@@ -57,12 +57,12 @@ int readActualRevision(const char* application_id, char* revision);
 #define MOBILITY_SERVER_OK					1
 #define MOBILITY_SERVER_KO					0
 
-#define MOBILITY_SERVER_MYSQL_HOST			"localhost"
+#define MOBILITY_SERVER_MYSQL_HOST			"mysql"
 #define MOBILITY_SERVER_MYSQL_DB			"RA_development"
 #define MOBILITY_SERVER_MYSQL_USER			"ra_user"
 #define MOBILITY_SERVER_MYSQL_PASSWORD		""
 
-#define MOBILITY_SERVER_RENEWABILITY_MYSQL_HOST			"localhost"
+#define MOBILITY_SERVER_RENEWABILITY_MYSQL_HOST			"mysql"
 #define MOBILITY_SERVER_RENEWABILITY_MYSQL_DB			"RN_development"
 #define MOBILITY_SERVER_RENEWABILITY_MYSQL_USER			"rn_user"
 #define MOBILITY_SERVER_RENEWABILITY_MYSQL_PASSWORD		"rn_password"
