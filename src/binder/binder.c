@@ -8,6 +8,7 @@
 uint32_t DIABLO_Mobility_binary[1] __attribute__((section (".data.binary"))) = { 42 };
 MobileEntry DIABLO_Mobility_global_mobile_redirection_table[1] __attribute__((section (".data.gmrt"))) = {{ (t_address) sizeof DIABLO_Mobility_global_mobile_redirection_table[0] }};
 uint32_t DIABLO_Mobility_GMRT_size = 1;
+uint32_t DIABLO_Mobility_version __attribute__((section (".data.version")))= 1;
 
 __attribute__ ((noinline)) static void RealInit ()
 {
@@ -32,8 +33,6 @@ __attribute__ ((naked)) void DIABLO_Mobility_Init ()
  */
 static void InsertMobileBlock (MobileEntry* entry, uint32_t index, bool code)
 {
-//  printf("InsertMobileBlock(%d, %d)\n", index, code);
-
   /* Download the mobile block */
   size_t len;
   t_address start = DIABLO_Mobility_DownloadByIndex(index, &len);
@@ -53,8 +52,6 @@ static void InsertMobileBlock (MobileEntry* entry, uint32_t index, bool code)
     __clear_cache(start, start + len);
 #endif
 
-//    //printf("Binder: block of code at %p\n", (t_address)((uint32_t)start + 8));
-
     /* Put the address of the stub into the downloaded field. We can use this later on to replace the address field with the address of the stub again */
     entry->downloaded = entry->addr;
     entry->len = len;
@@ -70,10 +67,8 @@ static void InsertMobileBlock (MobileEntry* entry, uint32_t index, bool code)
 }
 
 /* This function will return a MobileEntry for a mobile block (that will be downloaded if it's not present yet */
-static MobileEntry* GetMobileBlock(uint32_t index, bool code)
+MobileEntry* GetMobileBlock(uint32_t index, bool code)
 {
-//  printf("GetMobileBlock(%d, %d)\n", index, code);
-
   MobileEntry* entry = &DIABLO_Mobility_global_mobile_redirection_table[index];
   pthread_mutex_lock(&(entry->mutex));
 
@@ -88,11 +83,23 @@ static MobileEntry* GetMobileBlock(uint32_t index, bool code)
   return entry;
 }
 
-t_address DIABLO_Mobility_Resolve (uint32_t index)
+t_address Resolve (uint32_t index)
 {
-//  printf("DIABLO_Mobility_Resolve(%d)\n", index);
   MobileEntry* entry = GetMobileBlock(index, true);
   return entry->addr;
+}
+
+/* Wrapper function that aligns the stack on 8-byte boundary */
+__attribute__ ((naked)) t_address DIABLO_Mobility_Resolve (uint32_t index)
+{
+  __asm("push {r1, r2, r3, r4, r5, fp, ip, lr}");
+  __asm("mrs r4, CPSR");
+  __asm("mov fp, sp");
+  __asm("and sp, #-8");
+  Resolve(index);
+  __asm("mov sp, fp");
+  __asm("msr CPSR, r4");
+  __asm("pop {r1, r2, r3, r4, r5, fp, ip, pc}");
 }
 
 void binder_softvm(uint32_t index, char** retVmImage, uint32_t* retSizeVmImage)
