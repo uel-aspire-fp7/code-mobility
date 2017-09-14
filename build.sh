@@ -9,6 +9,7 @@ CYELLOW='\e[33m'
 CGREEN='\e[32m'
 
 BASE_DIRECTORY=$(dirname $0)
+TARGET_DIRECTORY=$1
 
 cd ${BASE_DIRECTORY}
 
@@ -16,7 +17,7 @@ echo -e "${CGREEN}Code Mobility Components build process STARTED...${CDEFAULT}"
 
 echo -en "${CYELLOW}0) Cleaning previous build...${CDEFAULT}"
 
-rm -f prebuilt/bin/x86/* prebuilt/obj/{android,linux}/*
+rm -f ${TARGET_DIRECTORY}/bin/x86/* ${TARGET_DIRECTORY}/obj/{android,linux}/*
 
 echo -e " done\n"
 
@@ -32,10 +33,11 @@ for PLATFORM in linux android; do
     make -f Makefile.${PLATFORM} clean default > /dev/null
 
 	echo -e " done"
-    echo -en "\tCopying object files to prebuilt directory..."
+    echo -en "\tCopying object files to target directory..."
 
     cd ../..
-    mv src/binder/{binder,stub_downloader}.o prebuilt/obj/${PLATFORM}
+    mkdir -p ${TARGET_DIRECTORY}/obj/${PLATFORM}
+    mv src/binder/{binder,stub_downloader}.o ${TARGET_DIRECTORY}/obj/${PLATFORM}
     echo -e " done\n"
 done
 
@@ -51,10 +53,11 @@ for PLATFORM in linux android; do
     make -f Makefile.${PLATFORM} clean all > /dev/null
 
 	echo -e " done"
-    echo -en "\tCopying object files to prebuilt directory..."
+    echo -en "\tCopying object files to target directory..."
 
     cd ../..
-    mv src/downloader/downloader.o prebuilt/obj/${PLATFORM}
+    mkdir -p ${TARGET_DIRECTORY}/obj/${PLATFORM}
+    mv src/downloader/downloader.o ${TARGET_DIRECTORY}/obj/${PLATFORM}
     echo -e " done\n"
 done
 
@@ -68,15 +71,16 @@ echo -en "\tCompiling..."
 make -f Makefile.linux_x86 clean all > /dev/null
 
 echo -e " done"
-echo -en "\tCopying application prebuilt directory..."
+echo -en "\tCopying application target directory..."
 
 cd ../..
-mv src/mobility_server/mobility_server prebuilt/bin/x86/
-cp prebuilt/bin/x86/mobility_server /opt/online_backends/code_mobility/
+mkdir -p ${TARGET_DIRECTORY}/../mobility_server
+mv src/mobility_server/mobility_server ${TARGET_DIRECTORY}/../mobility_server
+cp ${TARGET_DIRECTORY}/../mobility_server/mobility_server /opt/online_backends/code_mobility/
 
 echo -e " done\n"
 
 echo -e "${CGREEN}Code Mobility Components build process COMPLETED.\n${CDEFAULT}"
 
 TREE_OK=$(which tree)
-[ "${TREE_OK}" != '' ] && tree -h prebuilt
+[ "${TREE_OK}" != '' ] && tree -h ${TARGET_DIRECTORY}
