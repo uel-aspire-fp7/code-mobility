@@ -1,5 +1,5 @@
 CC=/opt/diablo-android-gcc-toolchain/bin/arm-linux-androideabi-gcc
-OPTIONS=-O3 -fPIC -marm -mfloat-abi=softfp -msoft-float -mfpu=neon -std=gnu99 -Wall -Werror
+OPTIONS=-O3 -fPIC -marm -mfloat-abi=softfp -msoft-float -mfpu=neon -std=gnu99 -Wall
 
 default:
 	$(CC) $(OPTIONS) -o binder.o -c binder.c

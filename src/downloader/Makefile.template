@@ -1,5 +1,5 @@
 CC=TOOLCHAIN_PLACEHOLDER
-CFLAGS=-O3 -fPIC -marm -mfloat-abi=softfp -msoft-float -mfpu=neon -std=gnu99 -Wall -Werror
+CFLAGS=-O3 -fPIC -marm -mfloat-abi=softfp -msoft-float -mfpu=neon -std=gnu99 -Wall
 
 all: downloader
 	
