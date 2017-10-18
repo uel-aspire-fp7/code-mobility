@@ -1,86 +1,46 @@
 #!/bin/bash
-
 set -o errexit
 set -o pipefail
+set -o nounset
+#set -o xtrace
 
-CDEFAULT='\e[39m'
-CRED='\e[31m'
-CYELLOW='\e[33m'
-CGREEN='\e[32m'
+# Get the repo and build directories, go to the build directory
+repo_dir=$(dirname $0)
+build_dir=$1
+mkdir -p $build_dir
+cd $build_dir
 
-BASE_DIRECTORY=$(dirname $0)
-TARGET_DIRECTORY=$1
-
-cd ${BASE_DIRECTORY}
-
-echo -e "${CGREEN}Code Mobility Components build process STARTED...${CDEFAULT}"
-
-echo -en "${CYELLOW}0) Cleaning previous build...${CDEFAULT}"
-
-rm -f ${TARGET_DIRECTORY}/bin/x86/* ${TARGET_DIRECTORY}/obj/{android,linux}/*
-
-echo -e " done\n"
+# Create extra symlinks
+ln -s $repo_dir/scripts/deploy_application.sh $build_dir
 
 ### BINDER
-
-echo -e "${CYELLOW}1) Binder${CDEFAULT}"
-
 for PLATFORM in linux android; do
-    cd src/binder
-
-	echo -en "\tCompiling '${PLATFORM}' platform..."
+    cd ${repo_dir}/src/binder
+    obj_dir=$build_dir/binder/obj/${PLATFORM}
 
     make -f Makefile.${PLATFORM} clean default > /dev/null
 
-	echo -e " done"
-    echo -en "\tCopying object files to target directory..."
-
-    cd ../..
-    mkdir -p ${TARGET_DIRECTORY}/obj/${PLATFORM}
-    mv src/binder/{binder,stub_downloader}.o ${TARGET_DIRECTORY}/obj/${PLATFORM}
-    echo -e " done\n"
+    mkdir -p ${obj_dir}
+    mv ${repo_dir}/src/binder/{binder,stub_downloader}.o ${obj_dir}
 done
 
 ### DOWNLOADER
-
-echo -e "${CYELLOW}1) Downloader${CDEFAULT}"
-
 for PLATFORM in linux android; do
-    cd src/downloader
-
-	echo -en "\tCompiling '${PLATFORM}' platform..."
+    cd ${repo_dir}/src/downloader
+    obj_dir=$build_dir/downloader/obj/${PLATFORM}
 
     make -f Makefile.${PLATFORM} clean all > /dev/null
 
-	echo -e " done"
-    echo -en "\tCopying object files to target directory..."
-
-    cd ../..
-    mkdir -p ${TARGET_DIRECTORY}/obj/${PLATFORM}
-    mv src/downloader/downloader.o ${TARGET_DIRECTORY}/obj/${PLATFORM}
-    echo -e " done\n"
+    mkdir -p ${obj_dir}
+    mv ${repo_dir}/src/downloader/downloader.o ${obj_dir}
 done
 
 ### CODE MOBILITY SERVER
-echo -e "${CYELLOW}3) Code Mobility Server${CDEFAULT}"
-
-cd src/mobility_server
-
-echo -en "\tCompiling..."
+cd ${repo_dir}/src/mobility_server
 
 make -f Makefile.linux_x86 clean all > /dev/null
 
-echo -e " done"
-echo -en "\tCopying application target directory..."
-
-cd ../..
-mkdir -p ${TARGET_DIRECTORY}/../mobility_server
-mv src/mobility_server/mobility_server ${TARGET_DIRECTORY}/../mobility_server
-cp ${TARGET_DIRECTORY}/../mobility_server/mobility_server /opt/online_backends/code_mobility/
-
-echo -e " done\n"
-
-echo -e "${CGREEN}Code Mobility Components build process COMPLETED.\n${CDEFAULT}"
-
-TREE_OK=$(which tree)
-[ "${TREE_OK}" != '' ] && tree -h ${TARGET_DIRECTORY}
+mkdir -p ${build_dir}/mobility_server
+mv ${repo_dir}/src/mobility_server/mobility_server ${build_dir}/mobility_server
+mkdir -p /opt/online_backends/code_mobility/
+cp ${build_dir}/mobility_server/mobility_server /opt/online_backends/code_mobility/
