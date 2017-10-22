@@ -13,6 +13,9 @@ cd $build_dir
 # Create extra symlinks
 ln -s $repo_dir/scripts/deploy_application.sh $build_dir
 
+# Create directory on online_backends
+mkdir -p /opt/online_backends/code_mobility/
+
 ### BINDER
 for PLATFORM in linux android; do
     cd ${repo_dir}/src/binder
@@ -42,5 +45,3 @@ make -f Makefile.linux_x86 clean all > /dev/null
 
 mkdir -p ${build_dir}/mobility_server
 mv ${repo_dir}/src/mobility_server/mobility_server ${build_dir}/mobility_server
-mkdir -p /opt/online_backends/code_mobility/
-cp ${build_dir}/mobility_server/mobility_server /opt/online_backends/code_mobility/
