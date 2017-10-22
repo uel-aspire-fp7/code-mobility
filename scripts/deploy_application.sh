@@ -52,7 +52,6 @@ PORTAL_RUNNING=$(pidof uwsgi)
 [ "${PORTAL_RUNNING}" == "" ] && /opt/ASCL/aspire-portal/start-aspire-portal.sh
 
 # start Renewability Manager if it not running
-RENEWABILITY_MANAGER_RUNNING=$(pidof renewability_manager)
-[ "${RENEWABILITY_MANAGER_RUNNING}" == "" ] && \
-    /opt/renewability/obj/serverlinux/renewability_manager >> /opt/renewability/logs/manager-out.log \
-    2>> /opt/renewability/logs/manager-out.log &
+if ! pidof renewability_manager &> /dev/null; then
+    /opt/renewability/obj/serverlinux/renewability_manager >> /opt/renewability/logs/manager-out.log 2>&1 &
+fi
