@@ -53,5 +53,5 @@ PORTAL_RUNNING=$(pidof uwsgi)
 
 # start Renewability Manager if it not running
 if ! pidof renewability_manager &> /dev/null; then
-    /opt/renewability/obj/serverlinux/renewability_manager >> /opt/renewability/logs/manager-out.log 2>&1 &
+    /opt/renewability/obj/serverlinux/renewability_manager >> /opt/online_backends/renewability/manager-out.log 2>&1 &
 fi
