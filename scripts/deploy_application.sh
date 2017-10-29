@@ -47,10 +47,6 @@ do
     count=$((count+1))
 done
 
-# start Aspire Portal if it is not running
-PORTAL_RUNNING=$(pidof uwsgi)
-[ "${PORTAL_RUNNING}" == "" ] && /opt/ASCL/aspire-portal/start-aspire-portal.sh
-
 # start Renewability Manager if it not running
 if ! pidof renewability_manager &> /dev/null; then
     /opt/renewability/obj/serverlinux/renewability_manager >> /opt/online_backends/renewability/manager-out.log 2>&1 &
