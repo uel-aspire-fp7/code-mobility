@@ -37,11 +37,3 @@ for PLATFORM in linux android; do
     mkdir -p ${obj_dir}
     mv ${repo_dir}/src/downloader/downloader.o ${obj_dir}
 done
-
-### CODE MOBILITY SERVER
-cd ${repo_dir}/src/mobility_server
-
-make -f Makefile.linux_x86 clean all > /dev/null
-
-mkdir -p ${build_dir}/mobility_server
-mv ${repo_dir}/src/mobility_server/mobility_server ${build_dir}/mobility_server
