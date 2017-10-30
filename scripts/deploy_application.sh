@@ -46,8 +46,3 @@ do
     echo $f > ${target}/source.txt
     count=$((count+1))
 done
-
-# start Renewability Manager if it not running
-if ! pidof renewability_manager &> /dev/null; then
-    /opt/renewability/obj/serverlinux/renewability_manager >> /opt/online_backends/renewability/manager-out.log 2>&1 &
-fi
