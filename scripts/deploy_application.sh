@@ -2,6 +2,7 @@
 
 APPLICATION_ID=""
 MOBILE_BLOCKS_PATH=$7
+DIRECTORY_MASK=$8
 
 while getopts "a:p:i:" opt
 do
@@ -41,8 +42,11 @@ rm -rf ${TARGET_PATH}/*
 count=0
 for f in $( ls $MOBILE_BLOCKS_PATH )
 do
+  # If a mask was specified, only match directories that match it.
+  if [ -z "$DIRECTORY_MASK" ] || echo "$f" | egrep --quiet "$DIRECTORY_MASK"; then
     target=${TARGET_PATH}/$( printf "%08x" ${count} )
     cp -r ${MOBILE_BLOCKS_PATH}/${f} ${target}
     echo $f > ${target}/source.txt
     count=$((count+1))
+  fi
 done
