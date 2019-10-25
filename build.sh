@@ -12,6 +12,7 @@ cd $build_dir
 
 # Create extra symlinks
 ln -s $repo_dir/scripts/deploy_application.sh $build_dir
+ln -s $repo_dir/scripts/update_mobile_blocks.sh $build_dir
 
 # Create directory on online_backends
 mkdir -p /opt/online_backends/code_mobility/
